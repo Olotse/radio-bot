@@ -126,6 +126,7 @@ async def play(interaction: discord.Interaction, url: str):
     ydl_opts = {
         'format': 'bestaudio/best',
         'extract_flat': 'in_playlist',
+        'cookiefile': 'cookies.txt',
         'quiet': True
     }
 
