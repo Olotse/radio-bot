@@ -1,6 +1,7 @@
 # coding=utf-8
 
 import asyncio
+from warnings import catch_warnings
 
 import discord
 from discord.ext import commands
@@ -189,4 +190,8 @@ for line in lines:
         token = line.removeprefix('TOKEN="').removesuffix('"')
 
 if len(token) > 0:
-    bot.run(token)
+    try:
+        bot.run(token)
+    except Exception as e:
+        print(e)
+        print("token: " + token)
