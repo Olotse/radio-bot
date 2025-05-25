@@ -8,6 +8,7 @@ from discord.ext import commands
 from discord import app_commands, ui
 
 import io
+import logging
 
 import yt_dlp as youtube_dl
 
@@ -22,15 +23,20 @@ play_queue = []
 current_title = None  # Variable pour stocker le titre de la musique actuellement en cours de lecture
 last_message = None  # Variable pour stocker le dernier message envoyé par le bot
 
+logging.basicConfig(
+    format='%(asctime)s %(levelname)-8s %(message)s',
+    level=logging.INFO,
+    datefmt='%Y-%m-%d %H:%M:%S')
+
 @bot.event
 async def on_ready():
     print(f'Logged in as {bot.user} (ID: {bot.user.id})')
     print('------')
     try:
         synced = await bot.tree.sync()
-        print(f"Synced {len(synced)} command(s)")
+        logging.info(f"Synced {len(synced)} command(s)")
     except Exception as e:
-        print(e)
+        logging.exception(e)
 
 async def update_last_message(interaction, content, view=None):
     global last_message
@@ -153,7 +159,7 @@ async def play(interaction: discord.Interaction, url: str):
                                                               view=MusicControls(interaction, voice_client))
 
                         except Exception as e:
-                            print(f"Erreur lors de l'extraction d'une vidéo de la playlist : {e}")
+                            logging.exception(f"Erreur lors de l'extraction d'une vidéo de la playlist : {e}")
 
             else:  # C'est une seule vidéo
                 if 'url' in info:
@@ -194,5 +200,5 @@ if len(token) > 0:
     try:
         bot.run(token)
     except Exception as e:
-        print(e)
-        print("token: " + token)
+        logging.exception(e)
+        logging.info("token: " + token)
