@@ -170,7 +170,12 @@ async def play(interaction: discord.Interaction, url: str):
             if not voice_client.is_playing() and not current_title:
                 await play_next(interaction, voice_client)
         except Exception as e:
-            await interaction.followup.send(f"Une erreur est survenue : {e}")
+            if str(e).find("--cookies") != -1:
+                interaction.followup.send(f"Cookies expirés", ephemeral=True)
+                logging.exception(f"Une erreur avec les cookies est survenue : {e}")
+            else:
+                await interaction.followup.send(f"Une erreur est survenue : {e}", ephemeral=True)
+                logging.exception(f"Une erreur est survenue : {e}")
 
 async def play_next(interaction, voice_client):
     global current_title, last_message
