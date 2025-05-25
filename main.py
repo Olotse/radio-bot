@@ -135,7 +135,7 @@ async def play(interaction: discord.Interaction, url: str):
         'postprocessors': [{
             'key': 'FFmpegExtractAudio',
             'preferredcodec': 'mp3',
-            'preferredquality': '128',
+            'preferredquality': '10',
         }],
         'cookiefile': 'cookies.txt',
         'quiet': True
@@ -153,7 +153,7 @@ async def play(interaction: discord.Interaction, url: str):
                     'postprocessors': [{
                         'key': 'FFmpegExtractAudio',
                         'preferredcodec': 'mp3',
-                        'preferredquality': '128',
+                        'preferredquality': '10',
                     }],
                     'quiet': True
                 }
