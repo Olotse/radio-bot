@@ -132,6 +132,11 @@ async def play(interaction: discord.Interaction, url: str):
     ydl_opts = {
         'format': 'bestaudio/best',
         'extract_flat': 'in_playlist',
+        'postprocessors': [{
+            'key': 'FFmpegExtractAudio',
+            'preferredcodec': 'mp3',
+            'preferredquality': '128',
+        }],
         'cookiefile': 'cookies.txt',
         'quiet': True
     }
@@ -145,6 +150,11 @@ async def play(interaction: discord.Interaction, url: str):
 
                 playlist_opts = {
                     'format': 'bestaudio/best',
+                    'postprocessors': [{
+                        'key': 'FFmpegExtractAudio',
+                        'preferredcodec': 'mp3',
+                        'preferredquality': '128',
+                    }],
                     'quiet': True
                 }
 
