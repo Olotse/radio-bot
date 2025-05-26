@@ -44,7 +44,7 @@ def main():
 
         for line in lines:
             if line.find('TOKEN') != -1:
-                token = line.removeprefix('TOKEN="').removesuffix('"')
+                token = line.removeprefix('TOKEN="').removesuffix('"\n')
 
     if len(token) > 0:
         try:
