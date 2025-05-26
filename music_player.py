@@ -65,6 +65,7 @@ class MusicPlayer:
                 await asyncio.sleep(1)
             await self.play_next(interaction, voice_client)
         else:
+            self.current_title = None
             await self.update_last_message(interaction, "La liste de lecture est vide.\n\nListe de lecture :\n" + self.get_play_queue(), view=MusicControls(interaction, voice_client))
 
     async def play(self, interaction, url):
