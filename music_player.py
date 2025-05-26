@@ -12,13 +12,17 @@ class MusicPlayer:
         self.current_title = None
         self.last_message = None
         self.cookie_filepath = 'res/cookies.txt'
+        self.audio_quality = '5'
 
         with open('.env', 'r', encoding='utf-8') as env:
             lines = env.readlines()
 
             for line in lines:
                 if line.find('COOKIES') != -1:
-                    file_path = line.removeprefix('COOKIES="').removesuffix('"\n')
+                    self.cookie_filepath = line.removeprefix('COOKIES="').removesuffix('"\n')
+                    continue
+                elif line.find('AUDIO_QUALITY') != -1:
+                    self.audio_quality = line.removeprefix('AUDIO_QUALITY="').removesuffix('"\n')
 
     async def update_last_message(self, interaction, content, view=None):
         try:
@@ -84,7 +88,7 @@ class MusicPlayer:
             'postprocessors': [{
                 'key': 'FFmpegExtractAudio',
                 'preferredcodec': 'mp3',
-                'preferredquality': '10',
+                'preferredquality': self.audio_quality,
             }],
             'cookiefile': self.cookie_filepath,
             'quiet': True
@@ -102,7 +106,7 @@ class MusicPlayer:
                         'postprocessors': [{
                             'key': 'FFmpegExtractAudio',
                             'preferredcodec': 'mp3',
-                            'preferredquality': '10',
+                            'preferredquality': self.audio_quality,
                         }],
                         'quiet': True
                     }
