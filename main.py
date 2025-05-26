@@ -23,7 +23,7 @@ logging.basicConfig(
 
 @bot.event
 async def on_ready():
-    print(f'Logged in as {bot.user} (ID: {bot.user.id})')
+    logging.info(f'Logged in as {bot.user} (ID: {bot.user.id})')
     print('------')
     try:
         synced = await bot.tree.sync()
