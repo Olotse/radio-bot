@@ -1,27 +1,20 @@
-# coding=utf-8
-
-import asyncio
-from warnings import catch_warnings
+import logging
+import io
 
 import discord
 from discord.ext import commands
-from discord import app_commands, ui
+from discord import app_commands
 
-import io
-import logging
-
-import yt_dlp as youtube_dl
+from music_player import MusicPlayer
+from radio_player import RadioPlayer, setup as radioPlayerSetup
 
 intents = discord.Intents.default()
 intents.message_content = True
-intents.members = True  # Assurez-vous que cet intent est activé dans le portail des développeurs
+intents.members = True
 
 bot = commands.Bot(command_prefix='!', intents=intents)
-
-# Liste de lecture globale
-play_queue = []
-current_title = None  # Variable pour stocker le titre de la musique actuellement en cours de lecture
-last_message = None  # Variable pour stocker le dernier message envoyé par le bot
+music_player = MusicPlayer()
+radio_player = RadioPlayer(bot)
 
 logging.basicConfig(
     format='%(asctime)s %(levelname)-8s %(message)s',
@@ -115,101 +108,17 @@ def get_play_queue():
 @bot.tree.command(name='play', description='Ajouter une musique ou une playlist à la liste de lecture depuis un lien YouTube')
 @app_commands.describe(url='Lien YouTube de la musique ou de la playlist')
 async def play(interaction: discord.Interaction, url: str):
-    await interaction.response.defer()  # Indique que la réponse sera envoyée plus tard
+    await music_player.play(interaction, url)
 
-    if not interaction.user.voice:
-        await interaction.followup.send("Vous n'êtes pas dans un canal vocal.")
-        return
+def main():
+    token = ''
 
-    voice_channel = interaction.user.voice.channel
-    if interaction.guild.voice_client is None:
-        await voice_channel.connect()
-    elif interaction.guild.voice_client.channel != voice_channel:
-        await interaction.guild.voice_client.move_to(voice_channel)
+    with open('.env', 'r', encoding='utf-8') as env:
+        lines = env.readlines()
 
-    voice_client = interaction.guild.voice_client
-
-    ydl_opts = {
-        'format': 'bestaudio/best',
-        'extract_flat': 'in_playlist',
-        'postprocessors': [{
-            'key': 'FFmpegExtractAudio',
-            'preferredcodec': 'mp3',
-            'preferredquality': '10',
-        }],
-        'cookiefile': 'cookies.txt',
-        'quiet': True
-    }
-
-    with youtube_dl.YoutubeDL(ydl_opts) as ydl:
-        try:
-            info = ydl.extract_info(url, download=False)
-
-            if 'entries' in info:  # C'est une playlist
-                await update_last_message(interaction, f'Ajout de la playlist à la liste de lecture : {info["title"]}\n\nListe de lecture :\n{get_play_queue()}', view=MusicControls(interaction, voice_client))
-
-                playlist_opts = {
-                    'format': 'bestaudio/best',
-                    'postprocessors': [{
-                        'key': 'FFmpegExtractAudio',
-                        'preferredcodec': 'mp3',
-                        'preferredquality': '10',
-                    }],
-                    'quiet': True
-                }
-
-                with youtube_dl.YoutubeDL(playlist_opts) as playlist_dl:
-                    for entry in info['entries']:
-                        try:
-                            video_info = playlist_dl.extract_info(entry['url'], download=False)
-                            if 'url' in video_info:
-                                play_queue.append((video_info['url'], video_info.get('title', 'Titre inconnu')))
-                                await update_last_message(interaction,
-                                                              f'Ajout de la playlist à la liste de lecture : {info["title"]}\n\nListe de lecture :\n{get_play_queue()}',
-                                                              view=MusicControls(interaction, voice_client))
-
-                        except Exception as e:
-                            logging.exception(f"Erreur lors de l'extraction d'une vidéo de la playlist : {e}")
-
-            else:  # C'est une seule vidéo
-                if 'url' in info:
-                    play_queue.append((info['url'], info.get('title', 'Titre inconnu')))
-                    await update_last_message(interaction, f'Ajout de la musique à la liste de lecture : {info.get("title", "Titre inconnu")}\n\nListe de lecture :\n{get_play_queue()}', view=MusicControls(interaction, voice_client))
-
-            # Jouer la première musique de la liste si le bot n'est pas déjà en train de jouer
-            if not voice_client.is_playing() and not current_title:
-                await play_next(interaction, voice_client)
-        except Exception as e:
-            if str(e).find("--cookies") != -1:
-                interaction.followup.send(f"Cookies expirés", ephemeral=True)
-                logging.exception(f"Une erreur avec les cookies est survenue : {e}")
-            else:
-                await interaction.followup.send(f"Une erreur est survenue : {e}", ephemeral=True)
-                logging.exception(f"Une erreur est survenue : {e}")
-
-async def play_next(interaction, voice_client):
-    global current_title, last_message
-    if play_queue:
-        url, title = play_queue.pop(0)
-        current_title = title  # Stocker le titre de la musique actuellement en cours de lecture
-        voice_client.play(discord.FFmpegPCMAudio(url))
-        await update_last_message(interaction, f'Lecture de : {title}\n\nListe de lecture :\n{get_play_queue()}', view=MusicControls(interaction, voice_client))
-        while voice_client.is_playing():
-            await asyncio.sleep(1)
-        # Jouer la prochaine musique une fois la lecture terminée
-        await play_next(interaction, voice_client)
-    else:
-        await update_last_message(interaction, "La liste de lecture est vide.\n\nListe de lecture :\n" + get_play_queue(), view=MusicControls(interaction, voice_client))
-
-# Lancer le bot
-envIOWrapper = io.open('./.env')
-
-lines = envIOWrapper.readlines()
-token = ''
-
-for line in lines:
-    if line.find('TOKEN') != -1:
-        token = line.removeprefix('TOKEN="').removesuffix('"')
+        for line in lines:
+            if line.find('TOKEN') != -1:
+                token = line.removeprefix('TOKEN="').removesuffix('"')
 
 if len(token) > 0:
     try:
@@ -217,3 +126,12 @@ if len(token) > 0:
     except Exception as e:
         logging.exception(e)
         logging.info("token: " + token)
+    if len(token) > 0:
+        try:
+            bot.run(token)
+        except Exception as e:
+            logging.exception(e)
+            logging.info("token: " + token)
+
+if __name__ == "__main__":
+    main()
