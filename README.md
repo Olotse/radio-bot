@@ -10,6 +10,7 @@ Le projet RADIO-BOT est un projet personnel permettant d'expérimenter le langag
 ### Dépendances
 - asyncio
 - discord
+- discord-components
 - pynacl
 - yt_dlp
 
@@ -28,7 +29,7 @@ $ ./.venv/bin/activate
 
 Installez les dépendances
 ```bash
-$ ./.venv/bin/pip install asyncio discord pynacl yt_dlp
+$ ./.venv/bin/pip install asyncio discord discord_components pynacl yt_dlp
 ```
 
 Créez le fichier .env à partir du fichier donné en exemple

@@ -26,6 +26,7 @@ async def on_ready():
     logging.info(f'Logged in as {bot.user} (ID: {bot.user.id})')
     print('------')
     try:
+        #await radioPlayerSetup(bot)
         synced = await bot.tree.sync()
         logging.info(f"Synced {len(synced)} command(s)")
     except Exception as e:
@@ -46,16 +47,9 @@ def main():
             if line.find('TOKEN') != -1:
                 token = line.removeprefix('TOKEN="').removesuffix('"')
 
-if len(token) > 0:
-    try:
-        bot.run(token)
-    except Exception as e:
-        logging.exception(e)
-        logging.info("token: " + token)
     if len(token) > 0:
         try:
-    if len(token) > 0:
-        try:
+            radioPlayerSetup(bot)
             bot.run(token)
         except Exception as e:
             logging.exception(e)
