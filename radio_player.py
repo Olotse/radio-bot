@@ -62,8 +62,18 @@ class RadioPlayer(commands.Cog):
         if selected_station:
             stream_url = selected_station.split('|')[0]
             voice_channel = interaction.user.voice.channel
-            voice = await voice_channel.connect()
-            voice.play(discord.FFmpegPCMAudio(executable="ffmpeg", source=stream_url))
+
+            if interaction.guild.voice_client is None:
+                await voice_channel.connect()
+            elif interaction.guild.voice_client.channel != voice_channel:
+                await interaction.guild.voice_client.move_to(voice_channel)
+
+            voice_client = interaction.guild.voice_client
+
+            if voice_client.is_playing():
+                voice_client.stop()
+
+            voice_client.play(discord.FFmpegPCMAudio(executable="ffmpeg", source=stream_url))
             await interaction.response.send_message(f"Lecture de la station : {selected_station.split('|')[1]}", ephemeral=True)
         else:
             await interaction.response.send_message("Station non trouvée.", ephemeral=True)
