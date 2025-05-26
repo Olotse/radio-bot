@@ -128,7 +128,10 @@ class MusicPlayer:
                         self.play_queue.append((info['url'], info.get('title', 'Titre inconnu')))
                         await self.update_last_message(interaction, f'Ajout de la musique à la liste de lecture : {info.get("title", "Titre inconnu")}\n\nListe de lecture :\n{self.get_play_queue()}', view=MusicControls(interaction, voice_client))
 
-                if not voice_client.is_playing() and not self.current_title:
+                if not self.current_title:
+                    if voice_client.is_playing():
+                        voice_client.stop()
+
                     await self.play_next(interaction, voice_client)
             except Exception as e:
                 if str(e).find("--cookies") != -1:
