@@ -1,5 +1,4 @@
 import logging
-import io
 
 import discord
 from discord.ext import commands
